@@ -60,6 +60,13 @@ func resourceUser() *schema.Resource {
 				ConflictsWith:    []string{"plaintext_password", "password"},
 			},
 
+			"soft_create": {
+				Type:     schema.TypeBool,
+				Optional: true,
+				ForceNew: true,
+				Default:  false,
+			},
+
 			"aad_identity": {
 				Type:     schema.TypeSet,
 				Optional: true,
@@ -113,6 +120,11 @@ func CreateUser(ctx context.Context, d *schema.ResourceData, meta interface{}) d
 	var authStm string
 	var auth string
 	var createObj = "USER"
+	var soft_create = ""
+
+	if d.Get("soft_create").(bool) {
+		soft_create = " IF NOT EXISTS "
+	}
 
 	if v, ok := d.GetOk("auth_plugin"); ok {
 		auth = v.(string)
@@ -149,19 +161,22 @@ func CreateUser(ctx context.Context, d *schema.ResourceData, meta interface{}) d
 
 		if aadIdentity["type"].(string) == "service_principal" {
 			// CREATE AADUSER 'mysqlProtocolLoginName"@"mysqlHostRestriction' IDENTIFIED BY 'identityId'
-			stmtSQL = fmt.Sprintf("CREATE AADUSER '%s'@'%s' IDENTIFIED BY '%s'",
+			stmtSQL = fmt.Sprintf("CREATE AADUSER %s '%s'@'%s' IDENTIFIED BY '%s'",
+				soft_create,
 				d.Get("user").(string),
 				d.Get("host").(string),
 				aadIdentity["identity"].(string))
 		} else {
 			// CREATE AADUSER 'identityName"@"mysqlHostRestriction' AS 'mysqlProtocolLoginName'
-			stmtSQL = fmt.Sprintf("CREATE AADUSER '%s'@'%s' AS '%s'",
+			stmtSQL = fmt.Sprintf("CREATE AADUSER %s '%s'@'%s' AS '%s'",
+				soft_create,
 				aadIdentity["identity"].(string),
 				d.Get("host").(string),
 				d.Get("user").(string))
 		}
 	} else {
-		stmtSQL = fmt.Sprintf("CREATE USER '%s'@'%s'",
+		stmtSQL = fmt.Sprintf("CREATE USER %s '%s'@'%s'",
+			soft_create,
 			d.Get("user").(string),
 			d.Get("host").(string))
 	}
