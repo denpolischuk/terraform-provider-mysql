@@ -1,3 +1,4 @@
+** This specific fork adds one extra property to user creation payload **
 **This repository is an unofficial fork**
 
 The fork is mostly based of the official (now archived) repo.

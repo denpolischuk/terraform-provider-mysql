@@ -6,6 +6,10 @@ description: |-
   A provider for MySQL Server.
 ---
 
+# This is a fork from petoju/terraform-provider-mysql
+This fork adds one specific attribute to mysql user creation payload `soft_create`.
+It simply injects `IF NOT EXISTS` into SQL statement during user creation when this flag is set to true.
+
 # MySQL Provider
 
 [MySQL](http://www.mysql.com) is a relational database server. The MySQL
